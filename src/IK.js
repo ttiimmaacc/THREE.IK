@@ -3,20 +3,16 @@ import IKChain from './IKChain.js';
 /**
  * Class representing IK structure.
  */
-class IK {
-
+export class IK {
   /**
    * Create an IK structure.
-   *
    */
   constructor() {
     this.chains = [];
     this._needsRecalculated = true;
-
     this.isIK = true;
-
-    // this.iterations = 1;
-    // this.tolerance = 0.05;
+    this.iterations = 1;
+    this.tolerance = 0.05;
 
     /**
      * An array of root chains for this IK system, each containing
@@ -36,7 +32,6 @@ class IK {
     if (!chain.isIKChain) {
       throw new Error('Argument is not an IKChain.');
     }
-
     this.chains.push(chain);
   }
 
@@ -48,7 +43,7 @@ class IK {
   recalculate() {
     this._orderedChains = [];
 
-    for (let rootChain of this.chains) {
+    for (const rootChain of this.chains) {
       const orderedChains = [];
       this._orderedChains.push(orderedChains);
 
@@ -56,9 +51,9 @@ class IK {
       while (chainsToSave.length) {
         const chain = chainsToSave.shift();
         orderedChains.push(chain);
-        for (let subChains of chain.chains.values()) {
-          for (let subChain of subChains) {
-            if (chainsToSave.indexOf(subChain) !== -1) {
+        for (const subChains of chain.chains.values()) {
+          for (const subChain of subChains) {
+            if (chainsToSave.includes(subChain)) {
               throw new Error('Recursive chain structure detected.');
             }
             chainsToSave.push(subChain);
@@ -72,15 +67,12 @@ class IK {
    * Performs the IK solution and updates bones.
    */
   solve() {
-    // If we don't have a depth-sorted array of chains, generate it.
-    // This is from the first `update()` call after creating.
     if (!this._orderedChains) {
       this.recalculate();
     }
 
-    for (let subChains of this._orderedChains) {
-      // Hardcode to one for now
-      let iterations = 1; // this.iterations;
+    for (const subChains of this._orderedChains) {
+      let iterations = this.iterations;
 
       while (iterations > 0) {
         for (let i = subChains.length - 1; i >= 0; i--) {
@@ -107,12 +99,10 @@ class IK {
 
         iterations--;
 
-        // Get the root chain's base and randomize the rotation, maybe
-        // we'll get a better change at reaching our goal
-        // @TODO
-        if (iterations > 0) {
-          // subChains[subChains.length - 1]._randomizeRootRotation();
-        }
+        // TODO: Implement root rotation randomization if needed
+        // if (iterations > 0) {
+        //   subChains[subChains.length - 1]._randomizeRootRotation();
+        // }
       }
     }
   }
@@ -127,5 +117,3 @@ class IK {
     return this.chains[0].base.bone;
   }
 }
-
-export default IK;

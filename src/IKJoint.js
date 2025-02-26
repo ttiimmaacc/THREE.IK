@@ -1,33 +1,34 @@
-import { Matrix4, Vector3 } from 'three';
+import { Matrix4, Vector3, Object3D, Quaternion } from 'three';
 import { transformPoint, getCentroid, getWorldPosition, setQuaternionFromDirection } from './utils.js';
-import IKBallConstraint from './IKBallConstraint.js';
+import { IKBallConstraint } from './IKBallConstraint.js';
 
 const Y_AXIS = new Vector3(0, 1, 0);
 
 /**
  * A class for a joint.
  */
-class IKJoint {
+export class IKJoint extends Object3D {
   /**
    * @param {THREE.Bone} bone
    * @param {Object} config
    * @param {Array<IKConstraint>} [config.constraints]
    */
   constructor(bone, { constraints } = {}) {
+    super();
     this.constraints = constraints || [];
-
     this.bone = bone;
-
     this.distance = 0;
-
     this._originalDirection = new Vector3();
     this._direction = new Vector3();
     this._worldPosition = new Vector3();
     this._isSubBase = false;
     this._subBasePositions = null;
     this.isIKJoint = true;
-
+    this._tempQuaternion = new Quaternion();
     this._updateWorldPosition();
+
+    // Ensure the IKJoint follows the bone's transformations
+    this.bone.add(this);
   }
 
   /**
@@ -61,9 +62,9 @@ class IKJoint {
     }
 
     let constraintApplied = false;
-    for (let constraint of this.constraints) {
+    for (const constraint of this.constraints) {
       if (constraint && constraint._apply) {
-        let applied = constraint._apply(this);
+        const applied = constraint._apply(this);
         constraintApplied = constraintApplied || applied;
       }
     }
@@ -96,7 +97,7 @@ class IKJoint {
   /**
    * Gets the distance.
    * @private
-   * @return {THREE.Vector3}
+   * @return {number}
    */
   _getDistance() {
     return this.distance;
@@ -106,7 +107,7 @@ class IKJoint {
    * @private
    */
   _updateMatrixWorld() {
-    this.bone.updateMatrixWorld(true);
+    this.bone.updateWorldMatrix(true, false);
   }
 
   /**
@@ -144,7 +145,7 @@ class IKJoint {
   _localToWorldDirection(direction) {
     if (this.bone.parent) {
       const parent = this.bone.parent.matrixWorld;
-      direction.transformDirection(parent);
+      direction.applyMatrix4(parent);
     }
     return direction;
   }
@@ -155,7 +156,7 @@ class IKJoint {
   _worldToLocalDirection(direction) {
     if (this.bone.parent) {
       const inverseParent = new Matrix4().copy(this.bone.parent.matrixWorld).invert();
-      direction.transformDirection(inverseParent);
+      direction.applyMatrix4(inverseParent);
     }
     return direction;
   }
@@ -164,22 +165,22 @@ class IKJoint {
    * @private
    */
   _applyWorldPosition() {
-    let direction = new Vector3().copy(this._direction);
-    let position = new Vector3().copy(this._getWorldPosition());
+    const direction = new Vector3().copy(this._direction);
+    const position = new Vector3().copy(this._getWorldPosition());
 
     const parent = this.bone.parent;
 
     if (parent) {
       this._updateMatrixWorld();
-      let inverseParent = new Matrix4().copy(this.bone.parent.matrixWorld).invert();
-      transformPoint(position, inverseParent, position);
+      const inverseParent = new Matrix4().copy(parent.matrixWorld).invert();
+      position.applyMatrix4(inverseParent);
       this.bone.position.copy(position);
 
       this._updateMatrixWorld();
 
       this._worldToLocalDirection(direction);
-      setQuaternionFromDirection(direction, Y_AXIS, this.bone.quaternion);
-
+      setQuaternionFromDirection(direction, Y_AXIS, this._tempQuaternion);
+      this.bone.quaternion.copy(this._tempQuaternion);
     } else {
       this.bone.position.copy(position);
     }
@@ -187,17 +188,16 @@ class IKJoint {
     // Update the world matrix so the next joint can properly transform
     // with this world matrix
     this.bone.updateMatrix();
-    this._updateMatrixWorld();
+    this.bone.updateWorldMatrix(true, false);
+    this._updateWorldPosition();
   }
 
   /**
    * @param {IKJoint|THREE.Vector3}
    * @private
-   * @return {THREE.Vector3}
+   * @return {number}
    */
   _getWorldDistance(joint) {
     return this._worldPosition.distanceTo(joint.isIKJoint ? joint._getWorldPosition() : getWorldPosition(joint, new Vector3()));
   }
 }
-
-export default IKJoint;

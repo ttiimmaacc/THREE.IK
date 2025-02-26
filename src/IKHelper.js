@@ -1,9 +1,9 @@
-import { Object3D, Color, Matrix4, AxesHelper, Mesh, ConeBufferGeometry, MeshBasicMaterial, Vector3 } from 'three';
+import { Object3D, Color, Matrix4, AxesHelper, Mesh, ConeGeometry, MeshBasicMaterial, Vector3 } from 'three';
 
 /**
  * Mesh for representing an IKJoint.
  * @private
- * @extends {THREE.Object3d}
+ * @extends {THREE.Object3D}
  */
 class BoneHelper extends Object3D {
   /**
@@ -15,11 +15,11 @@ class BoneHelper extends Object3D {
     super();
 
     // If our bone has 0 height (like an end effector),
-    // use a dummy Object3D instead, otherwise the ConeBufferGeometry
+    // use a dummy Object3D instead, otherwise the ConeGeometry
     // will fall back to its default and not use 0 height.
     if (height !== 0) {
-      const geo = new ConeBufferGeometry(boneSize, height, 4);
-      geo.applyMatrix4(new Matrix4().makeRotationAxis(new Vector3(1, 0, 0), Math.PI/2));
+      const geo = new ConeGeometry(boneSize, height, 4);
+      geo.applyMatrix4(new Matrix4().makeRotationX(Math.PI / 2));
       this.boneMesh = new Mesh(geo, new MeshBasicMaterial({
         color: 0xff0000,
         wireframe: true,
@@ -41,10 +41,9 @@ class BoneHelper extends Object3D {
 
 /**
  * Class for visualizing an IK system.
- * @extends {THREE.Object3d}
+ * @extends {THREE.Object3D}
  */
-class IKHelper extends Object3D {
-
+export class IKHelper extends Object3D {
   /**
    * Creates a visualization for an IK.
    *
@@ -68,10 +67,9 @@ class IKHelper extends Object3D {
     }
 
     this.ik = ik;
-
     this._meshes = new Map();
 
-    for (let rootChain of this.ik.chains) {
+    for (const rootChain of this.ik.chains) {
       const chainsToMeshify = [rootChain];
       while (chainsToMeshify.length) {
         const chain = chainsToMeshify.shift();
@@ -89,8 +87,8 @@ class IKHelper extends Object3D {
           this._meshes.set(joint, mesh);
           this.add(mesh);
         }
-        for (let subChains of chain.chains.values()) {
-          for (let subChain of subChains) {
+        for (const subChains of chain.chains.values()) {
+          for (const subChain of subChains) {
             chainsToMeshify.push(subChain);
           }
         }
@@ -139,7 +137,7 @@ class IKHelper extends Object3D {
     if (showBones === this._showBones) {
       return;
     }
-    for (let [joint, mesh] of this._meshes) {
+    for (const [, mesh] of this._meshes) {
       if (showBones) {
         mesh.add(mesh.boneMesh);
       } else {
@@ -154,7 +152,7 @@ class IKHelper extends Object3D {
     if (showAxes === this._showAxes) {
       return;
     }
-    for (let [joint, mesh] of this._meshes) {
+    for (const [, mesh] of this._meshes) {
       if (showAxes) {
         mesh.add(mesh.axesHelper);
       } else {
@@ -169,7 +167,7 @@ class IKHelper extends Object3D {
     if (wireframe === this._wireframe) {
       return;
     }
-    for (let [joint, mesh] of this._meshes) {
+    for (const [, mesh] of this._meshes) {
       if (mesh.boneMesh.material) {
         mesh.boneMesh.material.wireframe = wireframe;
       }
@@ -183,7 +181,7 @@ class IKHelper extends Object3D {
       return;
     }
     color = (color && color.isColor) ? color : new Color(color);
-    for (let [joint, mesh] of this._meshes) {
+    for (const [, mesh] of this._meshes) {
       if (mesh.boneMesh.material) {
         mesh.boneMesh.material.color = color;
       }
@@ -192,11 +190,9 @@ class IKHelper extends Object3D {
   }
 
   updateMatrixWorld(force) {
-    for (let [joint, mesh] of this._meshes) {
+    for (const [joint, mesh] of this._meshes) {
       mesh.matrix.copy(joint.bone.matrixWorld);
     }
     super.updateMatrixWorld(force);
   }
 }
-
-export default IKHelper;

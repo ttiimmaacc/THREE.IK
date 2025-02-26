@@ -34,3 +34,5 @@ examples/node_modules/dat.gui/*
 !examples/node_modules/dat.gui/build/
 examples/node_modules/dat.gui/build/*
 !examples/node_modules/dat.gui/build/dat.gui.js
+.aider*
+.env

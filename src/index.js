@@ -1,8 +1,8 @@
-import IK from './IK.js';
-import IKChain from './IKChain.js';
-import IKJoint from './IKJoint.js';
-import IKBallConstraint from './IKBallConstraint.js';
-import IKHelper from './IKHelper.js';
+import { IK } from './IK.js';
+import { IKChain } from './IKChain.js';
+import { IKJoint } from './IKJoint.js';
+import { IKBallConstraint } from './IKBallConstraint.js';
+import { IKHelper } from './IKHelper.js';
 
 // If this is being included via script tag and using THREE
 // globals, attach our exports to THREE.
