@@ -144,8 +144,7 @@ export class IKJoint extends Object3D {
    */
   _localToWorldDirection(direction) {
     if (this.bone.parent) {
-      const parent = this.bone.parent.matrixWorld;
-      direction.applyMatrix4(parent);
+      direction.transformDirection(this.bone.parent.matrixWorld);
     }
     return direction;
   }
@@ -155,8 +154,7 @@ export class IKJoint extends Object3D {
    */
   _worldToLocalDirection(direction) {
     if (this.bone.parent) {
-      const inverseParent = new Matrix4().copy(this.bone.parent.matrixWorld).invert();
-      direction.applyMatrix4(inverseParent);
+      direction.transformDirection(new Matrix4().copy(this.bone.parent.matrixWorld).invert());
     }
     return direction;
   }
@@ -172,13 +170,14 @@ export class IKJoint extends Object3D {
 
     if (parent) {
       this._updateMatrixWorld();
-      const inverseParent = new Matrix4().copy(parent.matrixWorld).invert();
-      position.applyMatrix4(inverseParent);
+      // Transform position into the parent's local space
+      position.applyMatrix4(new Matrix4().copy(parent.matrixWorld).invert());
       this.bone.position.copy(position);
 
       this._updateMatrixWorld();
 
-      this._worldToLocalDirection(direction);
+      // Transform direction into local space
+      direction.transformDirection(new Matrix4().copy(parent.matrixWorld).invert());
       setQuaternionFromDirection(direction, Y_AXIS, this._tempQuaternion);
       this.bone.quaternion.copy(this._tempQuaternion);
     } else {

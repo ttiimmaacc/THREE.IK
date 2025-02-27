@@ -55,11 +55,13 @@ export class IKChain {
       this.origin = new Vector3().copy(this.base._getWorldPosition());
     } else {
       const previousJoint = this.joints[this.joints.length - 2];
-      previousJoint._updateMatrixWorld();
+      previousJoint._updateMatrixWorld(true);
       previousJoint._updateWorldPosition();
+      joint._updateMatrixWorld(true);
       joint._updateWorldPosition();
 
       const distance = previousJoint._getWorldDistance(joint);
+
       if (distance === 0) {
         throw new Error('bone with 0 distance between adjacent bone found');
       }
@@ -73,12 +75,14 @@ export class IKChain {
       this.totalLengths += distance;
     }
 
+    console.log("Effector Index:", this.effectorIndex);
+    console.log("Effector Joint:", this.effector);
     if (target) {
       this.effector = joint;
       this.effectorIndex = this.joints.length - 1;
       this.target = target;
     }
-
+   
     return this;
   }
 
