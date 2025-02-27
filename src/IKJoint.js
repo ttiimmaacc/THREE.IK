@@ -1,6 +1,6 @@
 import { Matrix4, Vector3, Object3D, Quaternion } from 'three';
 import { transformPoint, getCentroid, getWorldPosition, setQuaternionFromDirection } from './utils.js';
-import { IKBallConstraint } from './IKBallConstraint.js';
+import IKBallConstraint from './IKBallConstraint.js';
 
 const Y_AXIS = new Vector3(0, 1, 0);
 

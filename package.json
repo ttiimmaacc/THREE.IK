@@ -10,7 +10,9 @@
     "docs": "jsdoc -d docs src/*.js",
     "build-demo": "rollup -c rollup.demo.config.js",
     "version": "npm run build && npm run build-demo && npm add src/* demo/* examples/*",
-    "postversion": "git push && git push --tags && npm publish"
+    "postversion": "git push && git push --tags && npm publish",
+    "start": "npx http-server examples -o",
+    "dev": "vite"
   },
   "author": "Jordan Santell <jordan@jsantell.com>",
   "license": "MIT",

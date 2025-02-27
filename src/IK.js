@@ -1,4 +1,4 @@
-import IKChain from './IKChain.js';
+import {IKChain} from './IKChain.js';
 
 /**
  * Class representing IK structure.
